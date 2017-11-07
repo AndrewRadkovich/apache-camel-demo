@@ -4,6 +4,7 @@ import com.godeltech.model.Customer;
 import com.godeltech.services.CustomerService;
 import com.godeltech.services.CustomerServiceImpl;
 import org.apache.camel.CamelContext;
+import org.apache.camel.Message;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.impl.DefaultCamelContext;
 import org.apache.camel.model.rest.RestBindingMode;
@@ -40,18 +41,20 @@ public class RestSwaggerDemo extends RouteBuilder {
         rest("/customers").
           get("/{customerId}").description("Get customer by id").outType(Customer.class).
             param().
-              name("customerId").type(RestParamType.path).description("Id of customer").required(true).dataType("int").
+              name("customerId").
+                type(RestParamType.path).
+                description("Id of customer").
+                required(true).
+                dataType("int").
             endParam().
             route().id("customerRoute").
-              bean(customerService).id("customerServiceBean").
-              process(exchange -> Thread.sleep(100)).id("processor1").
-              process(exchange -> Thread.sleep(200)).id("processor2");
+              bean(customerService).id("customerServiceBean");
 
-        rest("/stats").
-          produces("application/xml").
-          get().description("Get stats").
-            route().
-              to("controlbus:route?routeId=customerRoute&action=stats");
+        rest("/stats")
+                .produces("application/xml")
+                .get("/{action}").description("Get stats")
+                .route()
+                .recipientList(simple("controlbus:route?routeId=customerRoute&action=${header.action}"));
 
         //@formatter:on
     }

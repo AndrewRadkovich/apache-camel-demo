@@ -11,6 +11,8 @@ public class SyncRoutesDemo extends RouteBuilder {
 
     public void configure() throws Exception {
 
+        errorHandler(defaultErrorHandler().logExhaustedMessageHistory(true));
+
         from(ROUTE1).id("route1Id").
                 log(LoggingLevel.INFO, "${body}").
                 to(ROUTE2).id("sendToRoute2").
